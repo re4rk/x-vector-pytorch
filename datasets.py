@@ -13,7 +13,7 @@ import argparse
 
 
 
-class_ids ={'English':0,'Hindi':1,'Kannada':2,'Tamil':3,'Telugu':4,'Malayalam':5,'Marathi':6,'Gujarathi':7}
+class_ids ={'man':0,'other':1}
 def create_meta(files_list,store_loc,mode='train'):
     if not os.path.exists(store_loc):
         os.makedirs(store_loc)
@@ -46,8 +46,12 @@ def extract_files(folder_path):
     val_lists=[]
     
     for lang_folderpath in all_lang_folders:
-        language = lang_folderpath.split('/')[-2]
-        sub_folders = sorted(glob.glob(lang_folderpath+'/*/'))
+        if "id10300" in lang_folderpath:
+            language = "man"
+        else :
+            language = "other"
+
+        sub_folders = glob.glob(lang_folderpath+'/*/')
         train_nums = len(sub_folders)-int(len(sub_folders)*0.1)-int(len(sub_folders)*0.05)
         for i in range(train_nums):
             sub_folder = sub_folders[i]
@@ -74,7 +78,7 @@ def extract_files(folder_path):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser("Configuration for data preparation")
-    parser.add_argument("--processed_data", default="/media/newhd/youtube_lid_data/download_data", type=str,help='Dataset path')
+    parser.add_argument("--processed_data", default="../vox1_test_wav", type=str,help='Dataset path')
     parser.add_argument("--meta_store_path", default="meta/", type=str,help='Save directory after processing')
     config = parser.parse_args()
     train_list, test_list,val_lists = extract_files(config.processed_data)

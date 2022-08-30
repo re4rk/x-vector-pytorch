@@ -26,14 +26,14 @@ torch.multiprocessing.set_sharing_strategy('file_system')
 
 ########## Argument parser
 parser = argparse.ArgumentParser(add_help=False)
-parser.add_argument('-training_filepath',type=str,default='meta/training_feat.txt')
-parser.add_argument('-testing_filepath',type=str, default='meta/testing_feat.txt')
-parser.add_argument('-validation_filepath',type=str, default='meta/validation_feat.txt')
+parser.add_argument('-training_filepath',type=str,default='meta/training.txt')
+parser.add_argument('-testing_filepath',type=str, default='meta/testing.txt')
+parser.add_argument('-validation_filepath',type=str, default='meta/validation.txt')
 
 parser.add_argument('-input_dim', action="store_true", default=257)
-parser.add_argument('-num_classes', action="store_true", default=8)
+parser.add_argument('-num_classes', action="store_true", default=2)
 parser.add_argument('-lamda_val', action="store_true", default=0.1)
-parser.add_argument('-batch_size', action="store_true", default=256)
+parser.add_argument('-batch_size', action="store_true", default=16)
 parser.add_argument('-use_gpu', action="store_true", default=True)
 parser.add_argument('-num_epochs', action="store_true", default=100)
 args = parser.parse_args()
@@ -42,8 +42,8 @@ args = parser.parse_args()
 dataset_train = SpeechDataGenerator(manifest=args.training_filepath,mode='train')
 dataloader_train = DataLoader(dataset_train, batch_size=args.batch_size,shuffle=True,collate_fn=speech_collate) 
 
-dataset_val = SpeechDataGenerator(manifest=args.validation_filepath,mode='train')
-dataloader_val = DataLoader(dataset_train, batch_size=args.batch_size,shuffle=True,collate_fn=speech_collate) 
+dataset_val = SpeechDataGenerator(manifest=args.validation_filepath,mode='validation')
+dataloader_val = DataLoader(dataset_val, batch_size=args.batch_size,shuffle=True,collate_fn=speech_collate) 
 
 
 dataset_test = SpeechDataGenerator(manifest=args.testing_filepath,mode='test')
@@ -52,6 +52,7 @@ dataloader_test = DataLoader(dataset_test, batch_size=args.batch_size,shuffle=Tr
 ## Model related
 use_cuda = torch.cuda.is_available()
 device = torch.device("cuda" if use_cuda else "cpu")
+print(f"device is {device}")
 model = X_vector(args.input_dim, args.num_classes).to(device)
 optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0.0, betas=(0.9, 0.98), eps=1e-9)
 loss_fun = nn.CrossEntropyLoss()
@@ -59,6 +60,7 @@ loss_fun = nn.CrossEntropyLoss()
 
 
 def train(dataloader_train,epoch):
+    print("start train")
     train_loss_list=[]
     full_preds=[]
     full_gts=[]
@@ -66,8 +68,9 @@ def train(dataloader_train,epoch):
     for i_batch, sample_batched in enumerate(dataloader_train):
     
         features = torch.from_numpy(np.asarray([torch_tensor.numpy().T for torch_tensor in sample_batched[0]])).float()
-        labels = torch.from_numpy(np.asarray([torch_tensor[0].numpy() for torch_tensor in sample_batched[1]]))
+        labels = torch.from_numpy(np.asarray([torch_tensor[0].numpy() for torch_tensor in sample_batched[1]])).long()
         features, labels = features.to(device),labels.to(device)
+        # requires_grad : 기울기 저장
         features.requires_grad = True
         optimizer.zero_grad()
         pred_logits,x_vec = model(features)
@@ -77,8 +80,12 @@ def train(dataloader_train,epoch):
         optimizer.step()
         train_loss_list.append(loss.item())
         #train_acc_list.append(accuracy)
-        #if i_batch%10==0:
-        #    print('Loss {} after {} iteration'.format(np.mean(np.asarray(train_loss_list)),i_batch))
+        if i_batch%10==0:
+            print('Loss {} after {} iteration'.format(np.mean(np.asarray(train_loss_list)),i_batch))
+            if (labels==0).nonzero().squeeze().shape[0] >= 3:
+                print(f"label 0 case : {x_vec[(labels==0).nonzero().squeeze()[:3]]}")
+            if (labels==1).nonzero().squeeze().shape[0] >= 3:
+                print(f"label 1 case : {x_vec[(labels==1).nonzero().squeeze()[:3]]}")
         
         predictions = np.argmax(pred_logits.detach().cpu().numpy(),axis=1)
         for pred in predictions:
@@ -89,10 +96,12 @@ def train(dataloader_train,epoch):
     mean_acc = accuracy_score(full_gts,full_preds)
     mean_loss = np.mean(np.asarray(train_loss_list))
     print('Total training loss {} and training Accuracy {} after {} epochs'.format(mean_loss,mean_acc,epoch))
-    
+    print(full_preds[:80])
+    print(full_gts[:80])
 
 
 def validation(dataloader_val,epoch):
+    print("start validation")
     model.eval()
     with torch.no_grad():
         val_loss_list=[]
@@ -100,7 +109,7 @@ def validation(dataloader_val,epoch):
         full_gts=[]
         for i_batch, sample_batched in enumerate(dataloader_val):
             features = torch.from_numpy(np.asarray([torch_tensor.numpy().T for torch_tensor in sample_batched[0]])).float()
-            labels = torch.from_numpy(np.asarray([torch_tensor[0].numpy() for torch_tensor in sample_batched[1]]))
+            labels = torch.from_numpy(np.asarray([torch_tensor[0].numpy() for torch_tensor in sample_batched[1]])).long()
             features, labels = features.to(device),labels.to(device)
             pred_logits,x_vec = model(features)
             #### CE loss
@@ -116,7 +125,9 @@ def validation(dataloader_val,epoch):
         mean_acc = accuracy_score(full_gts,full_preds)
         mean_loss = np.mean(np.asarray(val_loss_list))
         print('Total vlidation loss {} and Validation accuracy {} after {} epochs'.format(mean_loss,mean_acc,epoch))
-        
+        print(full_preds[:80])
+        print(full_gts[:80])
+
         model_save_path = os.path.join('save_model', 'best_check_point_'+str(epoch)+'_'+str(mean_loss))
         state_dict = {'model': model.state_dict(),'optimizer': optimizer.state_dict(),'epoch': epoch}
         torch.save(state_dict, model_save_path)

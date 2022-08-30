@@ -47,11 +47,13 @@ def load_data(filepath,sr=16000, min_dur_sec=4,win_length=400,hop_length=160, n_
     mag, _ = librosa.magphase(linear_spect)  # magnitude
     mag_T = mag.T
     
-    if mode=='train':
+    if mode=='train' :
         randtime = np.random.randint(0, mag_T.shape[1]-spec_len)
         spec_mag = mag_T[:, randtime:randtime+spec_len]
     else:
-        spec_mag = mag_T
+        randtime = np.random.randint(0, mag_T.shape[1]-spec_len)
+        spec_mag = mag_T[:, randtime:randtime+spec_len]
+        # spec_mag = mag_T
     
     # preprocessing, subtract mean, divided by time-wise var
     mu = np.mean(spec_mag, 0, keepdims=True)
@@ -66,7 +68,9 @@ def load_npy_data(filepath,spec_len=400,mode='train'):
         randtime = np.random.randint(0, mag_T.shape[1]-spec_len)
         spec_mag = mag_T[:, randtime:randtime+spec_len]
     else:
-        spec_mag = mag_T
+        randtime = np.random.randint(0, mag_T.shape[1]-spec_len)
+        spec_mag = mag_T[:, randtime:randtime+spec_len]
+        # spec_mag = mag_T
     return spec_mag
     
     
