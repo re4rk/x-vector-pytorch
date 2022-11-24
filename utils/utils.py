@@ -2,7 +2,9 @@
 from fileinput import filename
 import librosa
 import numpy as np
-import random
+import torch
+
+
 # ===============================================
 #       code from Arsha for loading data.
 # This code extract features for a give audio file
@@ -137,3 +139,11 @@ def saveCSV(data, epoch, file_name=""):
     print(record, file = out)
 
     out.close()
+
+def save_model(model, optimizer, epoch, loss, log_filename):
+    torch.save({
+        'epoch': epoch,
+        'model': model.state_dict(),
+        'optimizer': optimizer.state_dict(),
+        'loss': loss,
+    }, f"save_model/{log_filename}.pth")
