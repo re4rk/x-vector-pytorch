@@ -1,0 +1,16 @@
+../vox1_test_wav/id10300/Xroutc-3_SU/00001.wav 0
+../vox1_test_wav/id10300/Xroutc-3_SU/00002.wav 0
+../vox1_test_wav/id10300/Xroutc-3_SU/00003.wav 0
+../vox1_test_wav/id10300/Xroutc-3_SU/00004.wav 0
+../vox1_test_wav/id10300/Xroutc-3_SU/00005.wav 0
+../vox1_test_wav/id10300/Xroutc-3_SU/00006.wav 0
+../vox1_test_wav/id10300/Xroutc-3_SU/00007.wav 0
+../vox1_test_wav/id10300/Xroutc-3_SU/00008.wav 0
+../vox1_test_wav/id10300/Xroutc-3_SU/00009.wav 0
+../vox1_test_wav/id10300/Xroutc-3_SU/00010.wav 0
+../vox1_test_wav/id10300/_WKW_Jkdvq8/00001.wav 0
+../vox1_test_wav/id10300/_WKW_Jkdvq8/00002.wav 0
+../vox1_test_wav/id10300/_WKW_Jkdvq8/00003.wav 0
+../vox1_test_wav/id10300/_WKW_Jkdvq8/00004.wav 0
+../vox1_test_wav/id10300/_WKW_Jkdvq8/00005.wav 0
+../vox1_test_wav/id10300/_WKW_Jkdvq8/00006.wav 0

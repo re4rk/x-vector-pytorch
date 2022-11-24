@@ -1,0 +1,15 @@
+{
+    "path":{
+        "train":"./meta/training.txt",
+        "test":"./meta/testing.txt",
+        "val":"./meta/validation.txt"
+    },
+    "model" :{
+        "input_dim": 257,
+        "num_classes": 128,
+        "lamda_val": 0.1,
+        "batch_size": 512,
+        "use_gpu": true,
+        "num_epochs": 1000
+    }
+}
